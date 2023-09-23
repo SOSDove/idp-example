@@ -1,5 +1,4 @@
 use leptos::{component, create_effect, create_signal, expect_context, IntoView, provide_context, Scope, SignalGet, spawn_local, view};
-use leptos::ev::MouseEvent;
 use leptos::*;
 use crate::app::GlobalState;
 
@@ -93,6 +92,11 @@ pub fn MainContainer(cx: Scope) -> impl IntoView {
         }
     }, /* f */);
 
+    let microservice_guide_components = GuideProps {
+        title: "Create a New Microservice".to_string(),
+        content: "Hover to see choices.".to_string(),
+    };
+
     view! { cx,
         <h1 class="text-2xl font-bold mb-4 text-red-600 text-center">Available Actions are listed on the cards</h1>
 
@@ -101,6 +105,7 @@ pub fn MainContainer(cx: Scope) -> impl IntoView {
             <div class="flex flex-wrap justify-between">
 
             <div class={card_class}>
+                <GuideComponent props=microservice_guide_components/>
                 <h2 class="text-xl font-semibold mb-2 text-red-600">Create a New Microservice</h2>
                 <p class="text-black">Hover to see choices.</p>
                 <div class="absolute left-0 bottom-0 w-full bg-white opacity-0 group-hover:opacity-100 transition duration-300">
@@ -131,7 +136,7 @@ pub fn MainContainer(cx: Scope) -> impl IntoView {
                 <h2 class="text-xl font-semibold mb-2 text-red-600">Request a Database</h2>
                 <p class="text-black">Lorem ipsum dolor sit.</p>
                 <div class="absolute left-0 bottom-0 w-full bg-white opacity-0 group-hover:opacity-100 transition duration-300">
-                    <a href="#" class="block p-2">
+                    <a href="/mssql" class="block p-2">
                         MSSQL
                     </a>
                     <a href="#" class="block p-2">
@@ -382,4 +387,169 @@ pub fn QuarkusMicroService(cx: Scope) -> impl IntoView {
     }
 }
 
+#[component]
+pub fn DatabaseProvisioningPage(cx: Scope) -> impl IntoView {
+    let (name, set_name) = create_signal(cx, String::new());
+    let (project_name, set_project_name) = create_signal(cx, String::new());
+    let (namespace, set_namespace) = create_signal(cx, String::new());
+    let (project_key, set_project_key) = create_signal(cx, String::new());
 
+    let state = use_context::<RwSignal<GlobalState>>(cx).expect("state to have been provided");
+
+    let (guide_set, set_guide_set) = create_slice(
+        cx,
+        // we take a slice *from* `state`
+        state,
+        // our getter returns a "slice" of the data
+        |state| state.guide_set,
+        // our setter describes how to mutate that slice, given a new value
+        |state, n| state.guide_set = n,
+    );
+
+    view! { cx,
+        <div class="p-4">
+            <h2 class="text-xl font-semibold mb-4">Request a MSSQL Database</h2>
+            <form on:submit=move |ev| {
+                ev.prevent_default();
+            }>
+                <div class="mb-4">
+                    <label for="name" class="block text-sm font-medium text-gray-600">
+                        Database Name - Format is SVG-DB-NAME
+                    </label>
+                    <input
+                        id="name"
+                        type="text"
+                        class="mt-1 p-2 w-full border rounded-md"
+                        on:input=move |ev| {
+                            set_name(event_target_value(&ev));
+                        }
+                    />
+                </div>
+                <div class="mb-4">
+                    <label for="projectName" class="block text-sm font-medium text-gray-600">
+                        Environments - Format is ENV1,ENV2,ENV3
+                    </label>
+                    <input
+                        id="projectName"
+                        type="text"
+                        class="mt-1 p-2 w-full border rounded-md"
+                        on:input=move |ev| {
+                            set_project_name(event_target_value(&ev));
+                        }
+                    />
+                </div>
+                <div class="mb-4">
+                    <label for="namespace" class="block text-sm font-medium text-gray-600">
+                        Namespace
+                    </label>
+                    <input
+                        id="namespace"
+                        type="text"
+                        class="mt-1 p-2 w-full border rounded-md"
+                        on:input=move |ev| {
+                            set_namespace(event_target_value(&ev));
+                        }
+                    />
+                </div>
+                <div class="mb-4">
+                    <label for="projectKey" class="block text-sm font-medium text-gray-600">
+                        Users - Types are DBO,READER,WRITER, and format is ENV:USER1:DBO,ENV:USER2:READER
+                    </label>
+                    <input
+                        id="projectKey"
+                        type="text"
+                        class="mt-1 p-2 w-full border rounded-md"
+                        on:input=move |ev| {
+                            set_project_key(event_target_value(&ev));
+                        }
+                    />
+                </div>
+                <button
+                    type="submit"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    "Submit"
+                </button>
+
+                <button
+                    type="other"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-4"
+                >
+                    "Generate Standard Setup!"
+                </button>
+            </form>
+       {move || if guide_set() {
+            view! { cx,
+                <div class="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+                    <div class="bg-black opacity-50 absolute inset-0"></div>
+                    <div class="bg-gray-100 p-6 rounded-lg shadow-lg relative z-10">
+                        <h2 class="text-xl font-semibold mb-2">Hey there, Developer!</h2>
+                        <p>"Welcome to the MSSQL Request Page! 🚀 Here, you can fill out all the nitty-gritty details to get your new database up and running. Just complete the form and hit 'Submit'—easy peasy!"</p>
+                        <button
+                            class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            on:click=move |_| {
+                                // Your action here
+                            }
+                        >
+                            "Got it, let's go!"
+                        </button>
+                    </div>
+                </div>
+            }
+        } else {
+            view! { cx, <div></div> }
+        }}
+    </div>
+    }
+}
+
+#[component]
+pub fn GuideComponent(cx: Scope, props: GuideProps) -> impl IntoView {
+    let GuideProps { title, content } = props;
+    let (show_content, set_show_content) = create_signal(cx, false);
+    let (content_class, set_content_class) = create_signal(cx, "hidden".to_string());
+
+    let toggle_content = move |_| {
+        set_show_content(!show_content.get());
+    };
+
+    create_effect(cx, move |_| {
+        if show_content() {
+            set_content_class("block absolute top-full left-0 z-10 bg-white p-4 rounded shadow-lg".to_string());
+        } else {
+            set_content_class("hidden".to_string());
+        }
+    }, /* f */);
+
+    view! { cx,
+        <div class="absolute top-0 right-0 p-2 cursor-pointer hover:bg-red-200 rounded-full">
+            <div class="absolute top-0 right-0 p-2 cursor-pointer hover:bg-red-200 rounded-full" on:click={toggle_content}>
+                    {move || {
+                        if show_content() {
+                            view! { cx,
+                                "absolute top-0 right-0 p-2 cursor-pointer hover:bg-red-200 rounded-full"
+                            }
+                        } else {
+                            view! { cx,
+                                "?"
+                            }
+                        }
+                    }}
+            </div>
+                            <div class={content_class()}>
+                <h3 class="text-lg font-semibold">
+                    {title}
+                </h3>
+                <p>
+                    {content}
+                </p>
+            </div>
+        </div>
+
+    }
+}
+
+pub struct GuideProps {
+    pub title: String,
+    pub content: String,
+}

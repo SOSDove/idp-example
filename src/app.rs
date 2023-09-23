@@ -1,21 +1,12 @@
-use crate::app::invite_manager::InviteManager;
 use leptos::ev::MouseEvent;
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 use serde_derive::{Deserialize, Serialize};
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex, Once};
 
-mod invite_manager;
 mod components;
-mod server_functions;
 
 use components::*;
-
-static INIT: Once = Once::new();
-static GET_INVITES_CALL_AMOUNT: AtomicUsize = AtomicUsize::new(0);
-static mut INVITE_MANAGER: Option<Arc<Mutex<InviteManager>>> = None;
 
 #[component]
 pub fn App(cx: Scope) -> impl IntoView {
@@ -43,6 +34,7 @@ pub fn App(cx: Scope) -> impl IntoView {
                 <Routes>
                     <Route path="" view=HomePage/>
                     <Route path="quarkus" view=QuarkusMicroService/>
+                    <Route path="mssql" view=DatabaseProvisioningPage/>
                     <Route path="/*any" view=NotFound/>
                 </Routes>
             </main>
