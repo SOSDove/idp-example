@@ -1,5 +1,5 @@
-use crate::app::Invite;
 use std::sync::{Mutex, MutexGuard};
+use crate::app::server_functions::Invite;
 
 pub struct InviteManager {
     invites: Mutex<Vec<Invite>>,
